@@ -15,6 +15,14 @@ import '../../features/audio_player/domain/usecases/resume_audio.dart';
 import '../../features/audio_player/domain/usecases/seek_audio.dart';
 import '../../features/audio_player/presentation/bloc/audio_bloc.dart';
 import '../../features/audio_player/presentation/bloc/player/player_bloc.dart';
+import '../../features/playlists/data/datasources/playlist_local_data_source.dart';
+import '../../features/playlists/data/repositories/playlist_repository_impl.dart';
+import '../../features/playlists/domain/repositories/playlist_repository.dart';
+import '../../features/playlists/domain/usecases/add_audio_to_playlist.dart';
+import '../../features/playlists/domain/usecases/create_playlist.dart';
+import '../../features/playlists/domain/usecases/get_playlist_audios.dart';
+import '../../features/playlists/domain/usecases/get_playlists.dart';
+import '../../features/playlists/presentation/bloc/playlist_bloc.dart';
 
 final sl = GetIt.instance;
 
@@ -36,8 +44,16 @@ Future<void> init() async {
       getPlayerStreams: sl(),
     ),
   );
+  sl.registerFactory(
+    () => PlaylistBloc(
+      getPlaylists: sl(),
+      createPlaylist: sl(),
+      addAudioToPlaylist: sl(),
+      getPlaylistAudios: sl(),
+    ),
+  );
 
-  // Use cases
+  // Use cases - Audio Player
   sl.registerLazySingleton(() => GetAudioFiles(sl()));
   sl.registerLazySingleton(() => RequestPermission(sl()));
   sl.registerLazySingleton(() => PlayAudio(sl()));
@@ -46,6 +62,12 @@ Future<void> init() async {
   sl.registerLazySingleton(() => SeekAudio(sl()));
   sl.registerLazySingleton(() => GetPlayerStreams(sl()));
 
+  // Use cases - Playlists
+  sl.registerLazySingleton(() => GetPlaylists(sl()));
+  sl.registerLazySingleton(() => CreatePlaylist(sl()));
+  sl.registerLazySingleton(() => AddAudioToPlaylist(sl()));
+  sl.registerLazySingleton(() => GetPlaylistAudios(sl()));
+
   // Repository
   sl.registerLazySingleton<AudioRepository>(
     () => AudioRepositoryImpl(localDataSource: sl()),
@@ -53,10 +75,16 @@ Future<void> init() async {
   sl.registerLazySingleton<PlayerRepository>(
     () => PlayerRepositoryImpl(audioPlayer: sl()),
   );
+  sl.registerLazySingleton<PlaylistRepository>(
+    () => PlaylistRepositoryImpl(localDataSource: sl()),
+  );
 
   // Data sources
   sl.registerLazySingleton<AudioLocalDataSource>(
     () => AudioLocalDataSourceImpl(audioQuery: sl()),
+  );
+  sl.registerLazySingleton<PlaylistLocalDataSource>(
+    () => PlaylistLocalDataSourceImpl(audioQuery: sl()),
   );
 
   // External
