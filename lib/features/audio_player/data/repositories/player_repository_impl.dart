@@ -1,5 +1,6 @@
 import 'package:dartz/dartz.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:just_audio_background/just_audio_background.dart';
 import 'package:rxdart/rxdart.dart';
 import '../../../../core/errors/failure.dart';
 import '../../domain/entities/audio_entity.dart';
@@ -29,7 +30,17 @@ class PlayerRepositoryImpl implements PlayerRepository {
   Future<Either<Failure, void>> play(AudioEntity audio) async {
     try {
       _currentAudioSubject.add(audio);
-      await audioPlayer.setAudioSource(AudioSource.uri(Uri.parse(audio.uri)));
+      final audioSource = AudioSource.uri(
+        Uri.parse(audio.uri),
+        tag: MediaItem(
+          id: audio.id.toString(),
+          album: audio.album ?? "Unknown Album",
+          title: audio.title,
+          artist: audio.artist,
+          artUri: null, // You can add artUri if you have it
+        ),
+      );
+      await audioPlayer.setAudioSource(audioSource);
       await audioPlayer.play();
       return const Right(null);
     } catch (e) {

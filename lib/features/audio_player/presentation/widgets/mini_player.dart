@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/player/player_bloc.dart';
-import '../bloc/player/player_event.dart';
 
 class MiniPlayer extends StatelessWidget {
   const MiniPlayer({super.key});
