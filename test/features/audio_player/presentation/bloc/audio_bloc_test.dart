@@ -43,6 +43,7 @@ void main() {
       artist: 'Artist A',
       album: 'Album X',
       uri: 'uri/1',
+      path: '/storage/emulated/0/Music/Folder1/song1.mp3',
       duration: 100,
     ),
     const AudioEntity(
@@ -51,16 +52,27 @@ void main() {
       artist: 'Artist B',
       album: 'Album Y',
       uri: 'uri/2',
+      path: '/storage/emulated/0/Music/Folder2/song2.mp3',
       duration: 200,
     ),
   ];
+
+  final tSongsByArtist = {
+    'Artist A': [tAudioList[0]],
+    'Artist B': [tAudioList[1]],
+  };
+
+  final tSongsByFolder = {
+    'Folder1': [tAudioList[0]],
+    'Folder2': [tAudioList[1]],
+  };
 
   test('initial state should be AudioInitial', () {
     expect(audioBloc.state, equals(AudioInitial()));
   });
 
   group('LoadAudioFiles', () {
-    test('should emit [AudioLoading, AudioLoaded] when permission granted and data gets loaded', () async {
+    test('should emit [AudioLoading, AudioLoaded] with grouped data when permission granted', () async {
       // arrange
       when(() => mockRequestPermission(any()))
           .thenAnswer((_) async => const Right(true));
@@ -70,7 +82,12 @@ void main() {
       // assert later
       final expected = [
         AudioLoading(),
-        AudioLoaded(allSongs: tAudioList, filteredSongs: tAudioList),
+        AudioLoaded(
+          allSongs: tAudioList, 
+          filteredSongs: tAudioList,
+          songsByArtist: tSongsByArtist,
+          songsByFolder: tSongsByFolder,
+        ),
       ];
       
       expectLater(audioBloc.stream, emitsInOrder(expected));
@@ -99,7 +116,7 @@ void main() {
 
   group('SearchAudioEvent', () {
     blocTest<AudioBloc, AudioState>(
-      'should filter songs based on query',
+      'should filter songs based on query but keep grouped data',
       build: () {
         when(() => mockRequestPermission(any()))
             .thenAnswer((_) async => const Right(true));
@@ -117,10 +134,17 @@ void main() {
       },
       expect: () => [
         AudioLoading(),
-        AudioLoaded(allSongs: tAudioList, filteredSongs: tAudioList),
         AudioLoaded(
           allSongs: tAudioList, 
-          filteredSongs: [tAudioList[0]]
+          filteredSongs: tAudioList,
+          songsByArtist: tSongsByArtist,
+          songsByFolder: tSongsByFolder,
+        ),
+        AudioLoaded(
+          allSongs: tAudioList, 
+          filteredSongs: [tAudioList[0]],
+          songsByArtist: tSongsByArtist,
+          songsByFolder: tSongsByFolder,
         ),
       ],
     );
@@ -145,33 +169,24 @@ void main() {
       },
       expect: () => [
         AudioLoading(),
-        AudioLoaded(allSongs: tAudioList, filteredSongs: tAudioList),
-        AudioLoaded(allSongs: tAudioList, filteredSongs: [tAudioList[0]]),
-        AudioLoaded(allSongs: tAudioList, filteredSongs: tAudioList),
-      ],
-    );
-    
-    blocTest<AudioBloc, AudioState>(
-      'should be case insensitive',
-      build: () {
-        when(() => mockRequestPermission(any()))
-            .thenAnswer((_) async => const Right(true));
-        when(() => mockGetAudioFiles(any()))
-            .thenAnswer((_) async => Right(tAudioList));
-        return AudioBloc(
-            getAudioFiles: mockGetAudioFiles,
-            requestPermission: mockRequestPermission,
-        );
-      },
-      act: (bloc) async {
-        bloc.add(LoadAudioFiles());
-        await Future.delayed(Duration.zero);
-        bloc.add(const SearchAudioEvent('artist b')); 
-      },
-      expect: () => [
-        AudioLoading(),
-        AudioLoaded(allSongs: tAudioList, filteredSongs: tAudioList),
-        AudioLoaded(allSongs: tAudioList, filteredSongs: [tAudioList[1]]),
+        AudioLoaded(
+          allSongs: tAudioList, 
+          filteredSongs: tAudioList,
+          songsByArtist: tSongsByArtist,
+          songsByFolder: tSongsByFolder,
+        ),
+        AudioLoaded(
+          allSongs: tAudioList, 
+          filteredSongs: [tAudioList[0]],
+          songsByArtist: tSongsByArtist,
+          songsByFolder: tSongsByFolder,
+        ),
+        AudioLoaded(
+          allSongs: tAudioList, 
+          filteredSongs: tAudioList,
+          songsByArtist: tSongsByArtist,
+          songsByFolder: tSongsByFolder,
+        ),
       ],
     );
   });

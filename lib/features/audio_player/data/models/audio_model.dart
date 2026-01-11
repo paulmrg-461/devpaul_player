@@ -8,6 +8,7 @@ class AudioModel extends AudioEntity {
     required super.artist,
     super.album,
     required super.uri,
+    required super.path,
     required super.duration,
   });
 
@@ -18,6 +19,7 @@ class AudioModel extends AudioEntity {
       artist: model.artist ?? "Unknown Artist",
       album: model.album,
       uri: model.uri ?? "",
+      path: model.data,
       duration: model.duration ?? 0,
     );
   }

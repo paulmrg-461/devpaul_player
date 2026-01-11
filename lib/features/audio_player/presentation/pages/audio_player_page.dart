@@ -5,6 +5,7 @@ import '../bloc/audio_bloc.dart';
 import '../bloc/audio_event.dart';
 import '../bloc/audio_state.dart';
 import '../widgets/audio_list_item.dart';
+import '../../domain/entities/audio_entity.dart';
 
 class AudioPlayerPage extends StatelessWidget {
   const AudioPlayerPage({super.key});
@@ -25,13 +26,21 @@ class AudioPlayerView extends StatefulWidget {
   State<AudioPlayerView> createState() => _AudioPlayerViewState();
 }
 
-class _AudioPlayerViewState extends State<AudioPlayerView> {
+class _AudioPlayerViewState extends State<AudioPlayerView> with SingleTickerProviderStateMixin {
   bool _isSearching = false;
   final TextEditingController _searchController = TextEditingController();
+  late TabController _tabController;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 3, vsync: this);
+  }
 
   @override
   void dispose() {
     _searchController.dispose();
+    _tabController.dispose();
     super.dispose();
   }
 
@@ -80,31 +89,108 @@ class _AudioPlayerViewState extends State<AudioPlayerView> {
               onPressed: _startSearch,
             ),
         ],
+        bottom: TabBar(
+          controller: _tabController,
+          tabs: const [
+            Tab(text: 'Songs'),
+            Tab(text: 'Artists'),
+            Tab(text: 'Folders'),
+          ],
+        ),
       ),
       body: BlocBuilder<AudioBloc, AudioState>(
         builder: (context, state) {
           if (state is AudioLoading) {
             return const Center(child: CircularProgressIndicator());
           } else if (state is AudioLoaded) {
-            if (state.filteredSongs.isEmpty) {
-              return Center(
-                child: Text(
-                  state.allSongs.isEmpty 
-                    ? "No songs found on device" 
-                    : "No songs match your search",
-                ),
-              );
-            }
-            return ListView.builder(
-              itemCount: state.filteredSongs.length,
-              itemBuilder: (context, index) {
-                return AudioListItem(audio: state.filteredSongs[index]);
-              },
+            return TabBarView(
+              controller: _tabController,
+              children: [
+                _buildSongsList(state.filteredSongs, state.allSongs.isEmpty),
+                _buildGroupedList(context, state.songsByArtist, Icons.person),
+                _buildGroupedList(context, state.songsByFolder, Icons.folder),
+              ],
             );
           } else if (state is AudioError) {
             return Center(child: Text(state.message));
           }
           return const SizedBox.shrink();
+        },
+      ),
+    );
+  }
+
+  Widget _buildSongsList(List<AudioEntity> songs, bool isEmpty) {
+    if (songs.isEmpty) {
+      return Center(
+        child: Text(
+          isEmpty 
+            ? "No songs found on device" 
+            : "No songs match your search",
+        ),
+      );
+    }
+    return ListView.builder(
+      itemCount: songs.length,
+      itemBuilder: (context, index) {
+        return AudioListItem(audio: songs[index]);
+      },
+    );
+  }
+
+  Widget _buildGroupedList(
+    BuildContext context, 
+    Map<String, List<AudioEntity>> groupedData,
+    IconData icon,
+  ) {
+    if (groupedData.isEmpty) {
+      return const Center(child: Text("No items found"));
+    }
+    
+    final keys = groupedData.keys.toList()..sort();
+    
+    return ListView.builder(
+      itemCount: keys.length,
+      itemBuilder: (context, index) {
+        final key = keys[index];
+        final songs = groupedData[key]!;
+        
+        return ListTile(
+          leading: Icon(icon),
+          title: Text(key),
+          subtitle: Text('${songs.length} songs'),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => GroupDetailView(title: key, songs: songs),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+}
+
+class GroupDetailView extends StatelessWidget {
+  final String title;
+  final List<AudioEntity> songs;
+
+  const GroupDetailView({
+    super.key,
+    required this.title,
+    required this.songs,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text(title)),
+      body: ListView.builder(
+        itemCount: songs.length,
+        itemBuilder: (context, index) {
+          return AudioListItem(audio: songs[index]);
         },
       ),
     );

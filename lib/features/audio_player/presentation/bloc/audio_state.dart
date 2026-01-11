@@ -13,14 +13,18 @@ class AudioLoading extends AudioState {}
 class AudioLoaded extends AudioState {
   final List<AudioEntity> allSongs;
   final List<AudioEntity> filteredSongs;
+  final Map<String, List<AudioEntity>> songsByArtist;
+  final Map<String, List<AudioEntity>> songsByFolder;
 
   const AudioLoaded({
     required this.allSongs,
     required this.filteredSongs,
+    this.songsByArtist = const {},
+    this.songsByFolder = const {},
   });
   
   @override
-  List<Object> get props => [allSongs, filteredSongs];
+  List<Object> get props => [allSongs, filteredSongs, songsByArtist, songsByFolder];
 }
 class AudioError extends AudioState {
   final String message;
