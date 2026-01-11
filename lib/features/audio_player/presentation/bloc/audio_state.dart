@@ -11,11 +11,16 @@ abstract class AudioState extends Equatable {
 class AudioInitial extends AudioState {}
 class AudioLoading extends AudioState {}
 class AudioLoaded extends AudioState {
-  final List<AudioEntity> songs;
-  const AudioLoaded(this.songs);
+  final List<AudioEntity> allSongs;
+  final List<AudioEntity> filteredSongs;
+
+  const AudioLoaded({
+    required this.allSongs,
+    required this.filteredSongs,
+  });
   
   @override
-  List<Object> get props => [songs];
+  List<Object> get props => [allSongs, filteredSongs];
 }
 class AudioError extends AudioState {
   final String message;
