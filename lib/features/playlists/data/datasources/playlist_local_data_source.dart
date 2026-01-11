@@ -1,4 +1,4 @@
-import 'package:on_audio_query/on_audio_query.dart';
+import 'package:on_audio_query/on_audio_query.dart' hide PlaylistModel;
 import '../../../../core/errors/failure.dart';
 import '../../../audio_player/data/models/audio_model.dart';
 import '../models/playlist_model.dart';
