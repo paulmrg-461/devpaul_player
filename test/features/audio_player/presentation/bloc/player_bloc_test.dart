@@ -61,6 +61,7 @@ void main() {
     title: 'Test Song',
     artist: 'Test Artist',
     uri: 'path/to/song',
+    path: 'path/to/song',
     duration: 1000,
   );
 
