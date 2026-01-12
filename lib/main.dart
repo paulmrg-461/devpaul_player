@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:just_audio_background/just_audio_background.dart';
 import 'core/di/service_locator.dart' as di;
+import 'core/theme/app_colors.dart';
 import 'features/home/presentation/pages/home_page.dart';
 
 void main() async {
@@ -21,12 +22,22 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'DevPaul Player',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
+        scaffoldBackgroundColor: AppColors.background,
+        cardColor: AppColors.surface,
         colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.deepPurple,
+          seedColor: AppColors.primary,
           brightness: Brightness.dark,
+          surface: AppColors.surface,
+          primary: AppColors.primary,
         ),
         useMaterial3: true,
+        textTheme: const TextTheme(
+          bodyLarge: TextStyle(color: AppColors.textPrimary),
+          bodyMedium: TextStyle(color: AppColors.textSecondary),
+        ),
+        iconTheme: const IconThemeData(color: AppColors.textSecondary),
       ),
       themeMode: ThemeMode.dark,
       home: const HomePage(),
